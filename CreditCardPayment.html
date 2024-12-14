@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>PixelBirbi Credit Card Tracker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Press Start 2P', cursive;
+            margin: 0;
+            padding: 0;
+            background-color: #1a1a1a;
+            background-image:
+                radial-gradient(circle, rgba(0,0,0,0.15) 1px, transparent 1px),
+                radial-gradient(circle, rgba(0,0,0,0.15) 1px, transparent 1px);
+            background-position: 0 0, 10px 10px;
+            background-size: 20px 20px;
+            color: #dcdcdc;
+        }
+
+        header, footer {
+            text-align: center;
+            padding: 20px;
+            background: #222;
+            box-shadow: 0 0 15px rgba(64,224,208,0.3);
+        }
+
+        h1, h2, h3, h4, h5 {
+            color: #40e0d0;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .container {
+            max-width: 2500px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        label {
+            display: block;
+            margin: 10px 0 5px;
+            text-transform: capitalize;
+        }
+
+        input[type="number"], input[type="date"], input[type="text"], select {
+            width: 100%;
+            padding: 10px;
+            background: #333 !important;
+            border: 1px solid #444;
+            color: #ffffff;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        input:focus, select:focus {
+            background: #333 !important;
+            color: #fff !important;
+            outline: 2px dashed #40e0d0;
+        }
+
+        button {
+            background: #40e0d0;
+            color: #121212;
+            border: none;
+            padding: 10px 20px;
+            margin-top: 20px;
+            cursor: pointer;
+            border-radius: 5px;
+            font-weight: bold;
+            display: inline-block;
+            text-transform: uppercase;
+            font-size: 14px;
+            box-shadow: 0 0 5px rgba(64,224,208,0.5);
+            transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+            margin-right: 10px;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(64,224,208,0.7);
+            background: #2cc9ba;
+        }
+
+        .card-remove-btn {
+            background: #d14f4f;
+            color: #ffffff;
+            margin-top: 10px;
+            display: inline-block;
+            text-transform: uppercase;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+        }
+
+        .card-remove-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(209,79,79,0.7);
+            background: #b74343;
+        }
+
+        .hidden { display: none; }
+
+        .section {
+            background: #222;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 0 15px rgba(64,224,208,0.2);
+        }
+
+        .card-input, .income-input, .charge-input {
+            background: #333;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            box-shadow: 0 0 5px rgba(64,224,208,0.3);
+        }
+
+        .output-section ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .output-section li {
+            background: #333;
+            margin: 5px 0;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 0 5px rgba(64,224,208,0.2);
+        }
+
+        .output-section h2, .output-section h3 {
+            border-bottom: 2px dashed #40e0d0;
+            padding-bottom: 5px;
+            margin-bottom: 15px;
+        }
+
+        .output-section p {
+            margin: 10px 0;
+            font-size: 14px;
+            text-transform: none;
+        }
+
+        canvas {
+            max-width: 100%;
+            height: 300px;
+            background-color: #333;
+            border: 1px solid #444;
+            border-radius: 5px;
+            box-shadow: 0 0 15px rgba(64,224,208,0.2);
+            margin-bottom: 20px;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from {opacity: 0;}
+            to {opacity: 1;}
+        }
+
+        .notice {
+            background: #333;
+            padding: 10px;
+            border-radius: 5px;
+            color: yellow; 
+            margin-bottom: 20px;
+            font-size: 12px;
+            box-shadow: 0 0 5px rgba(255,255,0,0.2);
+            text-transform: none;
+        }
+
+        .data-val {
+            color: #ff0000 !important; 
+            font-weight: bold;
+        }
+
+        .card-info-title {
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            text-transform: none;
+        }
+
+        .card-info-detail {
+            margin-left: 10px;
+            font-size: 14px;
+            text-transform: none;
+        }
+
+        .optional-text {
+            color: yellow; 
+            font-size: 12px;
+        }
+
+        .required-text {
+            color: #ff0000; 
+            font-size: 12px;
+        }
+
+        .assumed-date-text {
+            color: yellow;
+            font-size: 10px;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        function formatNumber(num) {
+            return Number(num).toLocaleString();
+        }
+
+        function formatLocalDate(date) {
+            return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+        }
+
+        let totalInterestIncurred = 0; 
+    </script>
+</head>
+<body>
+    <header>
+        <h1>PixelBirbi Credit Card Tracker</h1>
+    </header>
+
+    <div class="container">
+        <div class="notice">
+            This does not include any rewards and is subject to change/deviate from data shown. This is assuming credit card payments are made when paycheck is received.
+        </div>
+
+        <div id="inputSection" class="section fade-in">
+            <h2>Enter Credit Card Info</h2>
+            <form id="debtForm">
+                <div id="cardDetailsSection">
+                    <div class="card-input" id="card0">
+                        <h3>Card 1</h3>
+                        <label>Nickname:</label>
+                        <input type="text" id="nickname0" >
+
+                        <label>Amount Owed <span class="required-text">(Required)</span>:</label>
+                        <input type="number" id="amount0" min="0" step="0.01" required>
+
+                        <label>Apr% <span class="required-text">(Required)</span>:</label>
+                        <input type="number" id="interestRate0" min="0" step="0.01" required>
+
+                        <label>Next Date Interest Is Charged <span class="optional-text">(Optional)</span>:</label>
+                        <input type="date" id="date0">
+
+                        <label>Interest Rate Starts (Only If 0% Interest Promo Is In Effect) <span class="optional-text">(Optional)</span>:</label>
+                        <input type="date" id="interestRateDate0">
+
+                        <div id="charges0">
+                            <h4>Recurring Charges <span class="optional-text">(Optional)</span></h4>
+                        </div>
+                        <button type="button" onclick="addCharge(0)">Add Reoccurring Charge</button>
+                    </div>
+                    <button type="button" onclick="addCard()">Add Another Card</button>
+                </div>
+
+                <div id="paymentInfoSection" class="section" style="margin-top:20px;">
+                    <h2>Payment Info</h2>
+                    <p class="assumed-date-text">(This Date Will Be The Assumed Date Of Pay For Future Payments)</p>
+                    <label>Next Pay Date <span class="required-text">(Required)</span>:</label>
+                    <input type="date" id="lastPaymentDate" required>
+
+                    <h3>Payment Amount & Frequency</h3>
+                    <div class="income-input" id="income0" style="margin-top:10px;">
+                        <label>Amount Per Paycheck <span class="required-text">(Required)</span>:</label>
+                        <input type="number" id="incomeAmount0" min="0" step="0.01" required>
+                        <label>Frequency <span class="required-text">(Required)</span>:</label>
+                        <select id="incomeFrequency0" required>
+                            <option value="weekly">Weekly</option>
+                            <option value="bi-weekly">Bi-Weekly</option>
+                            <option value="monthly">Monthly</option>
+                        </select>
+                        <button type="button" class="card-remove-btn" onclick="removeIncome('income0')">Remove</button>
+                    </div>
+                    <button type="button" onclick="addIncome()">Add Another Income</button>
+                </div>
+
+                <button type="button" id="calculateButton" onclick="validateAndCalculate()">Calculate</button>
+            </form>
+        </div>
+
+        <div id="result" class="section hidden fade-in output-section">
+            <p id="currentDate" class="data-val"></p>
+
+            <h2>Payoff Summary</h2>
+            <p id="summaryInfo"></p>
+
+            <h2>Suggested Payment Order</h2>
+            <ul id="cardPayoffDetails"></ul>
+
+            <h3>Debt Payoff Visualization</h3>
+            <canvas id="debtChart"></canvas>
+            <canvas id="lineChart"></canvas>
+            <button type="button" onclick="location.reload()">Start Over</button>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2024 PixelBirbi Credit Card Tracker - Made on 12/13/24</p>
+    </footer>
+
+    <script>
+        let cardCount = 1;
+        let incomeCount = 1;
+        let chargeCounts = {0:0};
+        let finalData = {
+            summary:{},
+            cards:[],
+            daily:[]
+        };
+
+        function getFrequencyDays(freq) {
+            if (freq === 'weekly') return 7;
+            if (freq === 'bi-weekly') return 14;
+            if (freq === 'monthly') return 30;
+            return null;
+        }
+
+        function addCard() {
+            const cardDetailsSection = document.getElementById('cardDetailsSection');
+            const newCardId = `card${cardCount}`;
+            const cardDiv = document.createElement('div');
+            cardDiv.classList.add('card-input');
+            cardDiv.id = newCardId;
+
+            chargeCounts[cardCount] = 0;
+
+            cardDiv.innerHTML = `
+                <h3>Card ${cardCount + 1}</h3>
+                <label>Nickname:</label>
+                <input type="text" id="nickname${cardCount}" >
+
+                <label>Amount Owed <span class="required-text">(Required)</span>:</label>
+                <input type="number" id="amount${cardCount}" min="0" step="0.01" required>
+
+                <label>Apr% <span class="required-text">(Required)</span>:</label>
+                <input type="number" id="interestRate${cardCount}" min="0" step="0.01" required>
+
+                <label>Next Date Interest Is Charged <span class="optional-text">(Optional)</span>:</label>
+                <input type="date" id="date${cardCount}">
+
+                <label>Interest Rate Starts (Only If 0% Interest Promo Is In Effect) <span class="optional-text">(Optional)</span>:</label>
+                <input type="date" id="interestRateDate${cardCount}">
+
+                <div id="charges${cardCount}">
+                    <h4>Recurring Charges <span class="optional-text">(Optional)</span></h4>
+                </div>
+                <button type="button" onclick="addCharge(${cardCount})">Add Reoccurring Charge</button>
+                <button type="button" class="card-remove-btn" onclick="removeCard('${newCardId}')">Remove This Card</button>
+            `;
+
+            cardDetailsSection.insertBefore(cardDiv, cardDetailsSection.lastElementChild);
+            cardCount++;
+        }
+
+        function removeCard(cardId) {
+            const cardToRemove = document.getElementById(cardId);
+            if (cardToRemove) {
+                cardToRemove.remove();
+            }
+        }
+
+        function addIncome() {
+            const paymentInfoSection = document.getElementById('paymentInfoSection');
+            const newIncomeId = `income${incomeCount}`;
+            const incomeDiv = document.createElement('div');
+            incomeDiv.classList.add('income-input');
+            incomeDiv.id = newIncomeId;
+
+            incomeDiv.innerHTML = `
+                <label>Amount Per Paycheck <span class="required-text">(Required)</span>:</label>
+                <input type="number" id="incomeAmount${incomeCount}" min="0" step="0.01" required>
+                <label>Frequency <span class="required-text">(Required)</span>:</label>
+                <select id="incomeFrequency${incomeCount}" required>
+                    <option value="weekly">Weekly</option>
+                    <option value="bi-weekly">Bi-Weekly</option>
+                    <option value="monthly">Monthly</option>
+                </select>
+                <button type="button" class="card-remove-btn" onclick="removeIncome('${newIncomeId}')">Remove</button>
+            `;
+            paymentInfoSection.insertBefore(incomeDiv, paymentInfoSection.lastElementChild);
+            incomeCount++;
+        }
+
+        function removeIncome(incomeId) {
+            const incomeToRemove = document.getElementById(incomeId);
+            if (incomeToRemove) {
+                incomeToRemove.remove();
+            }
+        }
+
+        function addCharge(cardIndex) {
+            const chargesDiv = document.getElementById(`charges${cardIndex}`);
+            const chargeIndex = chargeCounts[cardIndex]++;
+            const newChargeId = `charge${cardIndex}_${chargeIndex}`;
+            const chargeDiv = document.createElement('div');
+            chargeDiv.classList.add('charge-input');
+            chargeDiv.id = newChargeId;
+
+            chargeDiv.innerHTML = `
+                <h5>Charge ${chargeIndex+1}</h5>
+                <label>Charge Amount:</label>
+                <input type="number" id="chargeAmount${cardIndex}_${chargeIndex}" min="0" step="0.01">
+                <label>Frequency:</label>
+                <select id="chargeFrequency${cardIndex}_${chargeIndex}">
+                    <option value="">(No recurring charges if blank)</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="bi-weekly">Bi-Weekly</option>
+                    <option value="monthly">Monthly</option>
+                </select>
+                <label>Next Charge Date:</label>
+                <input type="date" id="chargeDate${cardIndex}_${chargeIndex}">
+                <button type="button" class="card-remove-btn" onclick="removeCharge('${newChargeId}')">Remove This Charge</button>
+            `;
+            chargesDiv.appendChild(chargeDiv);
+        }
+
+        function removeCharge(chargeId) {
+            const chargeToRemove = document.getElementById(chargeId);
+            if (chargeToRemove) {
+                chargeToRemove.remove();
+            }
+        }
+
+        function validateAndCalculate() {
+            const lastPaymentDateVal = document.getElementById('lastPaymentDate').value;
+            if(!lastPaymentDateVal) {
+                alert('Please select the Next Pay Date.');
+                return;
+            }
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            const payDate = parseLocalDate(lastPaymentDateVal);
+            if(payDate < today) {
+                alert('Next Pay Date must be today or a future date.');
+                return;
+            }
+
+            calculatePayoff();
+        }
+
+        function parseLocalDate(inputDate) {
+            if(!inputDate) return null;
+            const [year, month, day] = inputDate.split('-').map(Number);
+            return new Date(year, month - 1, day);
+        }
+
+        function getDefaultInterestDate(baseDate) {
+            const defaultDate = new Date(baseDate);
+            defaultDate.setDate(20);
+            if(defaultDate <= baseDate) {
+                defaultDate.setMonth(defaultDate.getMonth()+1);
+            }
+            return defaultDate;
+        }
+
+        function calculatePayoff() {
+            finalData = {summary:{}, cards:[], daily:[]};
+            totalInterestIncurred = 0;
+
+            const lastPaymentDateVal = document.getElementById('lastPaymentDate').value;
+            const lastPaymentDate = parseLocalDate(lastPaymentDateVal);
+
+            const cardInputs = document.querySelectorAll('.card-input');
+            const cardDetails = [];
+            for (let i = 0; i < cardInputs.length; i++) {
+                const ci = cardInputs[i];
+                const indexMatch = ci.id.match(/card(\d+)/);
+                const idx = indexMatch ? parseInt(indexMatch[1]) : 0;
+
+                const nickname = document.getElementById(`nickname${idx}`).value || `Card ${idx+1}`;
+                const amountVal = document.getElementById(`amount${idx}`).value;
+                const aprVal = document.getElementById(`interestRate${idx}`).value;
+                if(!amountVal || aprVal==='') {
+                    alert('Amount Owed and APR% are required for each card.');
+                    return;
+                }
+                const amount = parseFloat(amountVal);
+                const interestRate = parseFloat(aprVal);
+                if(isNaN(amount) || amount<0 || isNaN(interestRate) || interestRate<0) {
+                    alert('Invalid Amount or APR');
+                    return;
+                }
+
+                let interestDateVal = document.getElementById(`date${idx}`).value;
+                let interestRateDateVal = document.getElementById(`interestRateDate${idx}`).value;
+
+                let userProvidedInterestDate = true;
+                let interestDate = parseLocalDate(interestDateVal);
+                if(!interestDate) {
+                    userProvidedInterestDate = false;
+                    interestDate = getDefaultInterestDate(lastPaymentDate);
+                }
+
+                let interestRateDate = parseLocalDate(interestRateDateVal);
+                if(!interestRateDate) {
+                    interestRateDate = interestDate;
+                }
+
+                const chargesContainer = document.getElementById(`charges${idx}`);
+                const chargeInputEls = chargesContainer.querySelectorAll('.charge-input');
+                const charges = [];
+                for (let c = 0; c < chargeInputEls.length; c++) {
+                    const ch = chargeInputEls[c];
+                    const chIndexMatch = ch.id.match(/charge\d+_(\d+)/);
+                    const chIdx = chIndexMatch ? parseInt(chIndexMatch[1]) : 0;
+                    const chargeAmountVal = document.getElementById(`chargeAmount${idx}_${chIdx}`).value;
+                    const chargeFreqVal = document.getElementById(`chargeFrequency${idx}_${chIdx}`).value;
+                    const chargeDateVal = document.getElementById(`chargeDate${idx}_${chIdx}`).value;
+
+                    if (chargeAmountVal && chargeFreqVal && chargeDateVal) {
+                        const chargeAmount = parseFloat(chargeAmountVal);
+                        if (chargeAmount > 0) {
+                            const chDate = parseLocalDate(chargeDateVal);
+                            if (!isNaN(chDate.getTime())) {
+                                charges.push({
+                                    amount: chargeAmount,
+                                    freqDays: getFrequencyDays(chargeFreqVal),
+                                    nextChargeDate: chDate
+                                });
+                            }
+                        }
+                    }
+                }
+
+                cardDetails.push({
+                    nickname,
+                    originalAmount: amount,
+                    amount: amount,
+                    interestRate: interestRate,
+                    interestRateDate: interestRateDate,
+                    interestDate: interestDate,
+                    userProvidedInterestDate: userProvidedInterestDate,
+                    charges: charges,
+                    paidOffDate: null
+                });
+            }
+
+            const incomeInputs = document.querySelectorAll('.income-input');
+            const incomes = [];
+            for (let i = 0; i < incomeInputs.length; i++) {
+                const ii = incomeInputs[i];
+                const idxMatch = ii.id.match(/income(\d+)/);
+                const idx = idxMatch ? parseInt(idxMatch[1]) : 0;
+
+                const amountVal = document.getElementById(`incomeAmount${idx}`).value;
+                const freqVal = document.getElementById(`incomeFrequency${idx}`).value;
+                if (!amountVal || !freqVal) {
+                    alert('Please fill out all fields for each payment frequency.');
+                    return;
+                }
+                const incAmount = parseFloat(amountVal);
+                if (incAmount <= 0) {
+                    alert('Payment amount must be greater than 0.');
+                    return;
+                }
+
+                incomes.push({
+                    amount: incAmount,
+                    freqDays: getFrequencyDays(freqVal)
+                });
+            }
+
+            // New sorting logic:
+            // 1. Cards with interestRate>0 come first, sorted by (interestRate * originalAmount) desc
+            // 2. Then cards with interestRate=0 sorted by originalAmount desc
+            cardDetails.sort((a,b) => {
+                const aInterest = a.interestRate>0?1:0;
+                const bInterest = b.interestRate>0?1:0;
+                if(aInterest!==bInterest) return bInterest - aInterest; // interest > no interest
+                if(a.interestRate>0 && b.interestRate>0) {
+                    // both have interest, sort by interestPotential = interestRate*originalAmount
+                    return (b.interestRate*b.originalAmount) - (a.interestRate*a.originalAmount);
+                }
+                // no interest cards: sort by originalAmount desc
+                if(a.interestRate===0 && b.interestRate===0) {
+                    return b.originalAmount - a.originalAmount;
+                }
+                return 0;
+            });
+
+            let currentDate = new Date(lastPaymentDate);
+            currentDate.setDate(currentDate.getDate() + 1);
+
+            let totalDebt = cardDetails.reduce((acc, c) => acc + c.amount, 0);
+            const initialDebt = totalDebt;
+            if (totalDebt <= 0) {
+                alert('No debt to pay off!');
+                return;
+            }
+
+            const today = new Date();
+
+            const dailyData = [];
+            let prevDebt = totalDebt;
+
+            let lastInterestApplication = cardDetails.map(c => new Date(c.interestRateDate));
+
+            while (true) {
+                let changed = false;
+                let causeArray = [];
+
+                // Recurring charges
+                for (const card of cardDetails) {
+                    if (card.amount > 0) {
+                        for (const ch of card.charges) {
+                            if (ch.freqDays && currentDate >= ch.nextChargeDate) {
+                                const daysSinceChargeStart = Math.floor((currentDate - ch.nextChargeDate)/(1000*3600*24));
+                                if (daysSinceChargeStart % ch.freqDays === 0) {
+                                    card.amount += ch.amount;
+                                    changed = true;
+                                    causeArray.push("Recurring Charge");
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // monthly interest
+                for (let i=0; i<cardDetails.length; i++) {
+                    const card = cardDetails[i];
+                    if (card.amount > 0) {
+                        const interestDay = card.interestDate.getDate();
+                        if (currentDate.getDate()===interestDay) {
+                            const lastApp = lastInterestApplication[i];
+                            if ((currentDate.getMonth() !== lastApp.getMonth() || currentDate.getFullYear()!== lastApp.getFullYear())) {
+                                const monthlyInterest = card.amount * (card.interestRate / 100 / 12);
+                                if(monthlyInterest > 0) {
+                                    card.amount += monthlyInterest;
+                                    totalInterestIncurred += monthlyInterest;
+                                    changed = true;
+                                    causeArray.push("Interest Charge");
+                                }
+                                lastInterestApplication[i] = new Date(currentDate);
+                            }
+                        }
+                    }
+                }
+
+                totalDebt = cardDetails.reduce((acc, c) => acc + c.amount, 0);
+
+                // payments
+                const daysSinceLastPayment = Math.floor((currentDate - lastPaymentDate)/(1000*3600*24));
+                let dailyIncome = 0;
+                for (const inc of incomes) {
+                    if (inc.freqDays && daysSinceLastPayment >=0 && daysSinceLastPayment % inc.freqDays === 0) {
+                        dailyIncome += inc.amount;
+                    }
+                }
+
+                let paymentMade = false;
+                if (dailyIncome > 0 && totalDebt>0) {
+                    let remainingPay = dailyIncome;
+                    for (const card of cardDetails) {
+                        if (card.amount > 0 && remainingPay>0) {
+                            const pay = Math.min(card.amount, remainingPay);
+                            card.amount -= pay;
+                            remainingPay -= pay;
+                            changed = true;
+                            paymentMade = true;
+                        }
+                    }
+                    if(paymentMade) causeArray.push("Payment Made");
+                }
+
+                totalDebt = cardDetails.reduce((acc, c) => acc + c.amount, 0);
+
+                if(changed && totalDebt !== prevDebt) {
+                    const cause = causeArray.join(", ");
+                    dailyData.push({date:new Date(currentDate), debt: totalDebt, cause});
+                    prevDebt = totalDebt;
+                }
+
+                if (totalDebt <=0) {
+                    cardDetails.forEach(card => {
+                        if(card.amount<=0 && !card.paidOffDate) {
+                            card.paidOffDate = new Date(currentDate);
+                        }
+                    });
+                    break;
+                }
+
+                currentDate.setDate(currentDate.getDate() + 1);
+            }
+
+            finalData.summary.currentDate = formatLocalDate(today);
+            finalData.summary.lastPaymentDate = formatLocalDate(lastPaymentDate);
+            finalData.summary.totalPayoffDate = formatLocalDate(currentDate);
+            finalData.summary.incomes = incomes.map(i => formatNumber(i.amount) + ' every ' + i.freqDays + ' days').join(', ');
+            finalData.summary.initialDebt = initialDebt;
+            finalData.summary.totalInterestIncurred = totalInterestIncurred;
+
+            finalData.cards = cardDetails.map(c => ({
+                nickname: c.nickname,
+                apr: c.interestRate,
+                payoffDate: c.paidOffDate?formatLocalDate(c.paidOffDate):'N/A',
+                originalAmount: c.originalAmount,
+                userProvidedInterestDate: c.userProvidedInterestDate,
+                interestDate: c.interestDate
+            }));
+
+            finalData.daily = dailyData.map(d => ({
+                date: formatLocalDate(d.date),
+                debt: d.debt,
+                cause: d.cause
+            }));
+
+            document.getElementById('currentDate').innerText = `Current Date: ${finalData.summary.currentDate}`;
+            const summaryInfo = document.getElementById('summaryInfo');
+            summaryInfo.innerHTML = `
+                <p>Initial Total Debt: <span class="data-val">$${formatNumber(finalData.summary.initialDebt)}</span></p>
+                <p>Payment Schedule: <span class="data-val">${finalData.summary.incomes}</span></p>
+                <p>Predicted Total Payoff Date: <span class="data-val">${finalData.summary.totalPayoffDate}</span></p>
+                <p>Predicted Total Interest Incurred: <span class="data-val">$${formatNumber(finalData.summary.totalInterestIncurred)}</span></p>
+            `;
+
+            const cardPayoffDetails = document.getElementById('cardPayoffDetails');
+            cardPayoffDetails.innerHTML = '';
+            finalData.cards.forEach(card => {
+                let interestDateText;
+                if(card.userProvidedInterestDate) {
+                    interestDateText = `Next Date Interest Is Charged: <span class="data-val">${formatLocalDate(card.interestDate)}</span>`;
+                } else {
+                    interestDateText = `Placeholder Interest Date: <span class="data-val">${formatLocalDate(card.interestDate)}</span>`;
+                }
+
+                cardPayoffDetails.innerHTML += `<li>
+                    <div class="card-info-title">${card.nickname}</div>
+                    <div class="card-info-detail">Current Balance: <span class="data-val">$${formatNumber(card.originalAmount)}</span></div>
+                    <div class="card-info-detail">APR %: <span class="data-val">${card.apr}%</span></div>
+                    <div class="card-info-detail">Predicted Payoff Date: <span class="data-val">${card.payoffDate}</span></div>
+                    <div class="card-info-detail">${interestDateText}</div>
+                </li>`;
+            });
+
+            const barDates = finalData.daily.filter(d=>d.cause && d.cause.includes("Payment Made")).map(d=>d.date);
+            const barDebts = finalData.daily.filter(d=>d.cause && d.cause.includes("Payment Made")).map(d=>d.debt);
+
+            renderBarChart(barDates, barDebts);
+            renderLineChart(finalData.daily);
+            document.getElementById('inputSection').classList.add('hidden');
+            document.getElementById('result').classList.remove('hidden');
+        }
+
+        function renderBarChart(dates, debtValues) {
+            const chartContainer = document.getElementById('debtChart');
+            const ctx = chartContainer.getContext('2d');
+
+            if(dates.length===0) {
+                dates.push('No Payments Made');
+                debtValues.push(0);
+            }
+
+            const maxVal = Math.max(...debtValues,1); 
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: dates,
+                    datasets: [{
+                        label: 'Remaining Debt After Payments',
+                        data: debtValues,
+                        backgroundColor: debtValues.map(value => {
+                            const ratio = value / maxVal;
+                            const red = Math.round(255 * ratio);
+                            const green = Math.round(224 * (1 - ratio));
+                            const blue = Math.round(208 * (1 - ratio));
+                            return `rgba(${red}, ${green}, ${blue}, 0.8)`;
+                        }),
+                        borderColor: '#ffffff',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => `$${formatNumber(context.raw)}`
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Remaining Debt ($)',
+                                color: '#40e0d0',
+                                font: { size: 14 }
+                            },
+                            grid: { color: '#333' },
+                            ticks: {
+                                color: '#dcdcdc',
+                                font: { size: 14 },
+                                callback: (value) => formatNumber(value)
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Payment Event Dates',
+                                color: '#40e0d0',
+                                font: { size: 14 }
+                            },
+                            grid: { color: '#333' },
+                            ticks: { color: '#dcdcdc', font: { size: 14 } }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderLineChart(dailyData) {
+            const lineContainer = document.getElementById('lineChart');
+            const ctxLine = lineContainer.getContext('2d');
+
+            const labelDates = dailyData.map(d => d.date);
+            const values = dailyData.map(d => d.debt);
+            const causes = dailyData.map(d => d.cause);
+
+            new Chart(ctxLine, {
+                type: 'line',
+                data: {
+                    labels: labelDates,
+                    datasets: [{
+                        label: 'Total Debt Changes',
+                        data: values,
+                        borderColor: '#40e0d0',
+                        backgroundColor: 'rgba(64,224,208,0.2)',
+                        borderWidth: 2,
+                        pointRadius: 3,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    elements: { line: { tension: 0 } },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => {
+                                    const val = `$${formatNumber(context.raw)}`;
+                                    const cause = causes[context.dataIndex];
+                                    if(cause) {
+                                        return `${val} (${cause})`;
+                                    } else {
+                                        return val;
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Remaining Debt ($)',
+                                color: '#40e0d0',
+                                font: { size:14 }
+                            },
+                            grid: { color: '#333' },
+                            ticks: {
+                                color: '#dcdcdc',
+                                font: { size:14 },
+                                callback: (value) => formatNumber(value)
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Event Dates',
+                                color: '#40e0d0',
+                                font: { size:14 }
+                            },
+                            grid: { color: '#333' },
+                            ticks: { color: '#dcdcdc', font: { size:14 } }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
